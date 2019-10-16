@@ -876,12 +876,12 @@ struct class_rw_t {
     // Be warned that Symbolication knows the layout of this structure.
     uint32_t flags;
     uint32_t version;
-
+    //class_ro_t 存储的大多是类在编译时就已经确定的信息。（区别于class_rw_t， 提供了运行时对类拓展的能力）。
     const class_ro_t *ro;
 
-    method_array_t methods;
-    property_array_t properties;
-    protocol_array_t protocols;
+    method_array_t methods;//类的方法列表
+    property_array_t properties;//类的属性列表
+    protocol_array_t protocols;//类的协议列表
 
     Class firstSubclass;
     Class nextSiblingClass;
@@ -971,8 +971,9 @@ private:
     }
 
 public:
-
+    //class_rw_t 提供了运行时对类拓展的能力，存有类的方法、属性（成员变量）、协议等信息。class_rw_t 的内容是可以在运行时被动态修改的，可以说运行时对类的拓展大都是存储在这里的。
     class_rw_t* data() {
+    //(bits & FAST_DATA_MASK) 是由class_data_bits_t中的bits第3位到46位存储的。接下来我们好好讲一下class_rw_t这个结构体
         return (class_rw_t *)(bits & FAST_DATA_MASK);
     }
     void setData(class_rw_t *newData)
@@ -1033,6 +1034,7 @@ public:
         clearBits(FAST_HAS_DEFAULT_AWZ);
     }
 #else
+    //hasDefaultAWZ()和setHasDefaultAWZ ()是data()的flag，而data()返回的其实是一个名为class_rw_t的结构体
     bool hasDefaultAWZ() {
         return data()->flags & RW_HAS_DEFAULT_AWZ;
     }

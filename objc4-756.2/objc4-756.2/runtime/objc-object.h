@@ -148,6 +148,7 @@ objc_object::isExtTaggedPointer()
 
 #if SUPPORT_NONPOINTER_ISA
 
+//isa_t的shiftcls位域，改位域存储了对象的内存区域。
 inline Class 
 objc_object::ISA() 
 {
@@ -159,7 +160,7 @@ objc_object::ISA()
     }
     return (Class)isa.bits;
 #else
-    return (Class)(isa.bits & ISA_MASK);
+    return (Class)(isa.bits & ISA_MASK);//可以取出Class的值。
 #endif
 }
 
@@ -215,7 +216,7 @@ objc_object::initIsa(Class cls, bool nonpointer, bool hasCxxDtor)
         //创建isa对象
         isa_t newisa(0);
 
-#if SUPPORT_INDEXED_ISA
+#if SUPPORT_INDEXED_ISA //表示 isa_t 中存放的 Class 信息是 Class 的地址，还是一个索引(根据该索引可在类信息表中查找该类结构地址)。经测试，iOS 设备上 SUPPORT_INDEXED_ISA 是 0。
         assert(cls->classArrayIndex() > 0);
         newisa.bits = ISA_INDEX_MAGIC_VALUE;
         // isa.magic is part of ISA_MAGIC_VALUE

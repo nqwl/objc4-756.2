@@ -121,6 +121,7 @@
 		87BB4EA70EC39854005D08E1 /* objc-probes.d in Sources */ = {isa = PBXBuildFile; fileRef = 87BB4E900EC39633005D08E1 /* objc-probes.d */; };
 		9672F7EE14D5F488007CEC96 /* NSObject.mm in Sources */ = {isa = PBXBuildFile; fileRef = 9672F7ED14D5F488007CEC96 /* NSObject.mm */; };
 		E8923DA5116AB2820071B552 /* objc-block-trampolines.mm in Sources */ = {isa = PBXBuildFile; fileRef = E8923DA0116AB2820071B552 /* objc-block-trampolines.mm */; };
+		F62FC7742356C0C8003ADD8E /* Person.m in Sources */ = {isa = PBXBuildFile; fileRef = F62FC7732356C0C8003ADD8E /* Person.m */; };
 		F9BCC71B205C68E800DD9AFC /* objc-blocktramps-arm64.s in Sources */ = {isa = PBXBuildFile; fileRef = 8379996D13CBAF6F007C2B5F /* objc-blocktramps-arm64.s */; };
 /* End PBXBuildFile section */
 
@@ -251,6 +252,8 @@
 		E8923D9C116AB2820071B552 /* objc-blocktramps-i386.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; name = "objc-blocktramps-i386.s"; path = "runtime/objc-blocktramps-i386.s"; sourceTree = "<group>"; };
 		E8923D9D116AB2820071B552 /* objc-blocktramps-x86_64.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; name = "objc-blocktramps-x86_64.s"; path = "runtime/objc-blocktramps-x86_64.s"; sourceTree = "<group>"; };
 		E8923DA0116AB2820071B552 /* objc-block-trampolines.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "objc-block-trampolines.mm"; path = "runtime/objc-block-trampolines.mm"; sourceTree = "<group>"; };
+		F62FC7722356C0C8003ADD8E /* Person.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Person.h; sourceTree = "<group>"; };
+		F62FC7732356C0C8003ADD8E /* Person.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Person.m; sourceTree = "<group>"; };
 		F9BCC727205C68E800DD9AFC /* libobjc-trampolines.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "libobjc-trampolines.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -363,6 +366,8 @@
 			isa = PBXGroup;
 			children = (
 				6F8ADBF42314D1F300E235A9 /* main.m */,
+				F62FC7722356C0C8003ADD8E /* Person.h */,
+				F62FC7732356C0C8003ADD8E /* Person.m */,
 			);
 			path = "objc-debug";
 			sourceTree = "<group>";
@@ -684,6 +689,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F62FC7742356C0C8003ADD8E /* Person.m in Sources */,
 				6F8ADBF52314D1F300E235A9 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

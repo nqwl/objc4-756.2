@@ -1738,15 +1738,22 @@ callAlloc(Class cls, bool checkNil, bool allocWithZone=false)
     if (slowpath(checkNil && !cls)) return nil;
 
 #if __OBJC2__
+    //fastpath 表示大概率为1  slowpath  表示大概率为0
+    //如果该对象没有自己的allocWithZone（AWZ）方法需要实现
     if (fastpath(!cls->ISA()->hasCustomAWZ())) {
         // No alloc/allocWithZone implementation. Go straight to the allocator.
         // fixme store hasCustomAWZ in the non-meta class and 
         // add it to canAllocFast's summary
+        //查看一下类是否能快速分配内存
         if (fastpath(cls->canAllocFast())) {
             // No ctors, raw isa, etc. Go straight to the metal.
+            //查看一下类是否有析构函数
             bool dtor = cls->hasCxxDtor();
+            //分配内存，给obj对象
             id obj = (id)calloc(1, cls->bits.fastInstanceSize());
+            //如果分配失败，那么交给错误处理
             if (slowpath(!obj)) return callBadAllocHandler(cls);
+            //初始化obj的isa
             obj->initInstanceIsa(cls, dtor);
             return obj;
         }
@@ -1760,6 +1767,7 @@ callAlloc(Class cls, bool checkNil, bool allocWithZone=false)
 #endif
 
     // No shortcuts available.
+    //如果allocWithZone 为true，则实现allocWithZone 方法
     if (allocWithZone) return [cls allocWithZone:nil];
     return [cls alloc];
 }

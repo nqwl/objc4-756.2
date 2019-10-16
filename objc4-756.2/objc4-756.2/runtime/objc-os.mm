@@ -123,7 +123,6 @@ static header_info * addHeader(const headerType *mhdr, const char *path, int &to
         hi->setAllClassesRealized(NO);
     }
 
-#if __OBJC2__
     {
         size_t count = 0;
         if (_getObjc2ClassList(hi, &count)) {
@@ -131,7 +130,6 @@ static header_info * addHeader(const headerType *mhdr, const char *path, int &to
             if (!inSharedCache) unoptimizedTotalClasses += count;
         }
     }
-#endif
 
     appendHeader(hi);
     
@@ -187,14 +185,9 @@ static bool shouldRejectGCApp(const header_info *hi)
     // Note that objc_appRequiresGC() also knows about this.
     size_t classcount = 0;
     size_t refcount = 0;
-#if __OBJC2__
     _getObjc2ClassList(hi, &classcount);
     _getObjc2ClassRefs(hi, &refcount);
-#else
-    if (hi->mod_count == 0  ||  (hi->mod_count == 1 && !hi->mod_ptr[0].symtab)) classcount = 0;
-    else classcount = 1;
-    _getObjcClassRefs(hi, &refcount);
-#endif
+
     if (classcount == 0  &&  refcount == 1  &&  
         linksToLibrary(hi, "/System/Library/Frameworks"
                        "/AppleScriptObjC.framework/Versions/A"
@@ -248,11 +241,8 @@ static bool shouldRejectGCImage(const headerType *mhdr)
 *
 * Locking: loadMethodLock(old) or runtimeLock(new) acquired by map_images.
 **********************************************************************/
-#if __OBJC2__
 #include "objc-file.h"
-#else
-#include "objc-file-old.h"
-#endif
+
 
 void 
 map_images_nolock(unsigned mhCount, const char * const mhPaths[],
@@ -294,16 +284,12 @@ map_images_nolock(unsigned mhCount, const char * const mhPaths[],
             
             if (mhdr->filetype == MH_EXECUTE) {
                 // Size some data structures based on main executable's size
-#if __OBJC2__
                 size_t count;
                 _getObjc2SelectorRefs(hi, &count);
                 selrefCount += count;
                 _getObjc2MessageRefs(hi, &count);
                 selrefCount += count;
-#else
-                _getObjcSelectorRefs(hi, &selrefCount);
-#endif
-                
+
 #if SUPPORT_GC_COMPAT
                 // Halt if this is a GC app.
                 if (shouldRejectGCApp(hi)) {
@@ -477,15 +463,9 @@ static void defineLockOrder()
     // on the assumption that fatal errors could be anywhere.
     lockdebug_lock_precedes_lock(&loadMethodLock, &crashlog_lock);
     lockdebug_lock_precedes_lock(&classInitLock, &crashlog_lock);
-#if __OBJC2__
     lockdebug_lock_precedes_lock(&runtimeLock, &crashlog_lock);
     lockdebug_lock_precedes_lock(&DemangleCacheLock, &crashlog_lock);
-#else
-    lockdebug_lock_precedes_lock(&classLock, &crashlog_lock);
-    lockdebug_lock_precedes_lock(&methodListLock, &crashlog_lock);
-    lockdebug_lock_precedes_lock(&NXUniqueStringLock, &crashlog_lock);
-    lockdebug_lock_precedes_lock(&impLock, &crashlog_lock);
-#endif
+
     lockdebug_lock_precedes_lock(&selLock, &crashlog_lock);
     lockdebug_lock_precedes_lock(&cacheUpdateLock, &crashlog_lock);
     lockdebug_lock_precedes_lock(&objcMsgLogLock, &crashlog_lock);
@@ -499,15 +479,9 @@ static void defineLockOrder()
     // loadMethodLock precedes everything
     // because it is held while +load methods run
     lockdebug_lock_precedes_lock(&loadMethodLock, &classInitLock);
-#if __OBJC2__
     lockdebug_lock_precedes_lock(&loadMethodLock, &runtimeLock);
     lockdebug_lock_precedes_lock(&loadMethodLock, &DemangleCacheLock);
-#else
-    lockdebug_lock_precedes_lock(&loadMethodLock, &methodListLock);
-    lockdebug_lock_precedes_lock(&loadMethodLock, &classLock);
-    lockdebug_lock_precedes_lock(&loadMethodLock, &NXUniqueStringLock);
-    lockdebug_lock_precedes_lock(&loadMethodLock, &impLock);
-#endif
+
     lockdebug_lock_precedes_lock(&loadMethodLock, &selLock);
     lockdebug_lock_precedes_lock(&loadMethodLock, &cacheUpdateLock);
     lockdebug_lock_precedes_lock(&loadMethodLock, &objcMsgLogLock);
@@ -527,15 +501,9 @@ static void defineLockOrder()
         CppObjectLocks.precedeLock(lock);
         lockdebug_lock_precedes_lock(&AssociationsManagerLock, lock);
     };
-#if __OBJC2__
     PropertyAndCppObjectAndAssocLocksPrecedeLock(&runtimeLock);
     PropertyAndCppObjectAndAssocLocksPrecedeLock(&DemangleCacheLock);
-#else
-    PropertyAndCppObjectAndAssocLocksPrecedeLock(&methodListLock);
-    PropertyAndCppObjectAndAssocLocksPrecedeLock(&classLock);
-    PropertyAndCppObjectAndAssocLocksPrecedeLock(&NXUniqueStringLock);
-    PropertyAndCppObjectAndAssocLocksPrecedeLock(&impLock);
-#endif
+
     PropertyAndCppObjectAndAssocLocksPrecedeLock(&classInitLock);
     PropertyAndCppObjectAndAssocLocksPrecedeLock(&selLock);
     PropertyAndCppObjectAndAssocLocksPrecedeLock(&cacheUpdateLock);
@@ -549,11 +517,8 @@ static void defineLockOrder()
     PropertyLocks.precedeLock(&AssociationsManagerLock);
     CppObjectLocks.precedeLock(&AssociationsManagerLock);
     
-#if __OBJC2__
     lockdebug_lock_precedes_lock(&classInitLock, &runtimeLock);
-#endif
 
-#if __OBJC2__
     // Runtime operations may occur inside SideTable locks
     // (such as storeWeak calling getMethodImplementation)
     SideTableLocksPrecedeLock(&runtimeLock);
@@ -562,19 +527,7 @@ static void defineLockOrder()
     lockdebug_lock_precedes_lock(&runtimeLock, &selLock);
     lockdebug_lock_precedes_lock(&runtimeLock, &cacheUpdateLock);
     lockdebug_lock_precedes_lock(&runtimeLock, &DemangleCacheLock);
-#else
-    // Runtime operations may occur inside SideTable locks
-    // (such as storeWeak calling getMethodImplementation)
-    SideTableLocksPrecedeLock(&methodListLock);
-    SideTableLocksPrecedeLock(&classInitLock);
-    // Method lookup and fixup.
-    lockdebug_lock_precedes_lock(&methodListLock, &classLock);
-    lockdebug_lock_precedes_lock(&methodListLock, &selLock);
-    lockdebug_lock_precedes_lock(&methodListLock, &cacheUpdateLock);
-    lockdebug_lock_precedes_lock(&methodListLock, &impLock);
-    lockdebug_lock_precedes_lock(&classLock, &selLock);
-    lockdebug_lock_precedes_lock(&classLock, &cacheUpdateLock);
-#endif
+
 
     // Striped locks use address order internally.
     SideTableDefineLockOrder();
@@ -600,15 +553,9 @@ void _objc_atfork_prepare()
     AssociationsManagerLock.lock();
     SideTableLockAll();
     classInitLock.enter();
-#if __OBJC2__
     runtimeLock.lock();
     DemangleCacheLock.lock();
-#else
-    methodListLock.lock();
-    classLock.lock();
-    NXUniqueStringLock.lock();
-    impLock.lock();
-#endif
+
     selLock.lock();
     cacheUpdateLock.lock();
     objcMsgLogLock.lock();
@@ -635,15 +582,9 @@ void _objc_atfork_parent()
     cacheUpdateLock.unlock();
     selLock.unlock();
     SideTableUnlockAll();
-#if __OBJC2__
     DemangleCacheLock.unlock();
     runtimeLock.unlock();
-#else
-    impLock.unlock();
-    NXUniqueStringLock.unlock();
-    methodListLock.unlock();
-    classLock.unlock();
-#endif
+
     classInitLock.leave();
 
     lockdebug_assert_no_locks_locked();
@@ -669,15 +610,9 @@ void _objc_atfork_child()
     cacheUpdateLock.forceReset();
     selLock.forceReset();
     SideTableForceResetAll();
-#if __OBJC2__
     DemangleCacheLock.forceReset();
     runtimeLock.forceReset();
-#else
-    impLock.forceReset();
-    NXUniqueStringLock.forceReset();
-    methodListLock.forceReset();
-    classLock.forceReset();
-#endif
+
     classInitLock.forceReset();
 
     lockdebug_assert_no_locks_locked();
@@ -713,11 +648,8 @@ void _objc_init(void)
 **********************************************************************/
 static const header_info *_headerForAddress(void *addr)
 {
-#if __OBJC2__
     const char *segnames[] = { "__DATA", "__DATA_CONST", "__DATA_DIRTY" };
-#else
-    const char *segnames[] = { "__OBJC" };
-#endif
+
     header_info *hi;
 
     for (hi = FirstHeader; hi != NULL; hi = hi->getNext()) {

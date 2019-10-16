@@ -1589,7 +1589,6 @@ objc_object::sidetable_clearDeallocating()
 **********************************************************************/
 
 
-#if __OBJC2__
 
 __attribute__((aligned(16)))
 id 
@@ -1622,16 +1621,6 @@ objc_autorelease(id obj)
 
 
 // OBJC2
-#else
-// not OBJC2
-
-
-id objc_retain(id obj) { return [obj retain]; }
-void objc_release(id obj) { [obj release]; }
-id objc_autorelease(id obj) { return [obj autorelease]; }
-
-
-#endif
 
 
 /***********************************************************************
@@ -1712,18 +1701,9 @@ _objc_rootAllocWithZone(Class cls, malloc_zone_t *zone)
 {
     id obj;
 
-#if __OBJC2__
     // allocWithZone under __OBJC2__ ignores the zone parameter
     (void)zone;
     obj = class_createInstance(cls, 0);
-#else
-    if (!zone) {
-        obj = class_createInstance(cls, 0);
-    }
-    else {
-        obj = class_createInstanceFromZone(cls, 0, zone);
-    }
-#endif
 
     if (slowpath(!obj)) obj = callBadAllocHandler(cls);
     return obj;
@@ -1737,7 +1717,6 @@ callAlloc(Class cls, bool checkNil, bool allocWithZone=false)
 {
     if (slowpath(checkNil && !cls)) return nil;
 
-#if __OBJC2__
     //fastpath 表示大概率为1  slowpath  表示大概率为0
     //如果该对象没有自己的allocWithZone（AWZ）方法需要实现
     if (fastpath(!cls->ISA()->hasCustomAWZ())) {
@@ -1764,7 +1743,6 @@ callAlloc(Class cls, bool checkNil, bool allocWithZone=false)
             return obj;
         }
     }
-#endif
 
     // No shortcuts available.
     //如果allocWithZone 为true，则实现allocWithZone 方法
@@ -1832,13 +1810,9 @@ malloc_zone_t *
 _objc_rootZone(id obj)
 {
     (void)obj;
-#if __OBJC2__
     // allocWithZone under __OBJC2__ ignores the zone parameter
     return malloc_default_zone();
-#else
-    malloc_zone_t *rval = malloc_zone_from_ptr(obj);
-    return rval ? rval : malloc_default_zone();
-#endif
+
 }
 
 uintptr_t

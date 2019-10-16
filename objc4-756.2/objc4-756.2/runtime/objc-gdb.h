@@ -51,11 +51,8 @@ __BEGIN_DECLS
 // Return cls if it's a valid class, or crash.
 OBJC_EXPORT Class _Nonnull
 gdb_class_getClass(Class _Nonnull cls)
-#if __OBJC2__
     OBJC_AVAILABLE(10.6, 3.1, 9.0, 1.0, 2.0);
-#else
-    OBJC_AVAILABLE(10.7, 3.1, 9.0, 1.0, 2.0);
-#endif
+
 
 // Same as gdb_class_getClass(object_getClass(cls)).
 OBJC_EXPORT Class _Nonnull gdb_object_getClass(id _Nullable obj)
@@ -66,28 +63,18 @@ OBJC_EXPORT Class _Nonnull gdb_object_getClass(id _Nullable obj)
 * Class lists for heap.
 **********************************************************************/
 
-#if __OBJC2__
+
 
 // Maps class name to Class, for in-use classes only. NXStrValueMapPrototype.
 OBJC_EXPORT NXMapTable * _Nullable gdb_objc_realized_classes
     OBJC_AVAILABLE(10.6, 3.1, 9.0, 1.0, 2.0);
 
-#else
-
-// Hashes Classes, for all known classes. Custom prototype.
-OBJC_EXPORT NXHashTable * _Nullable _objc_debug_class_hash
-    __OSX_AVAILABLE(10.2) 
-    __IOS_UNAVAILABLE __TVOS_UNAVAILABLE
-    __WATCHOS_UNAVAILABLE __BRIDGEOS_UNAVAILABLE;
-
-#endif
 
 
 /***********************************************************************
 * Non-pointer isa
 **********************************************************************/
 
-#if __OBJC2__
 
 // Extract isa pointer from an isa field.
 // (Class)(isa & mask) == class pointer
@@ -122,13 +109,11 @@ OBJC_EXPORT uintptr_t objc_indexed_classes_count;
 
 // Absolute symbols for some of the above values are in objc-abi.h.
 
-#endif
 
 
 /***********************************************************************
 * Class structure decoding
 **********************************************************************/
-#if __OBJC2__
 
 // Mask for the pointer from class struct to class rw data.
 // Other bits may be used for flags.
@@ -136,13 +121,11 @@ OBJC_EXPORT uintptr_t objc_indexed_classes_count;
 OBJC_EXPORT const uintptr_t objc_debug_class_rw_data_mask
     OBJC_AVAILABLE(10.13, 11.0, 11.0, 4.0, 2.0);
 
-#endif
 
 
 /***********************************************************************
 * Tagged pointer decoding
 **********************************************************************/
-#if __OBJC2__
 
 // Basic tagged pointers (7 classes, 60-bit payload).
 
@@ -202,16 +185,13 @@ OBJC_EXPORT unsigned int objc_debug_taggedpointer_ext_payload_lshift
 OBJC_EXPORT unsigned int objc_debug_taggedpointer_ext_payload_rshift
     OBJC_AVAILABLE(10.12, 10.0, 10.0, 3.0, 2.0);
 
-#endif
 
 
 /***********************************************************************
 * Swift marker bits
 **********************************************************************/
-#if __OBJC2__
 OBJC_EXPORT const uintptr_t objc_debug_swift_stable_abi_bit
 OBJC_AVAILABLE(10.14, 12.0, 12.0, 5.0, 3.0);
-#endif
 
 __END_DECLS
 

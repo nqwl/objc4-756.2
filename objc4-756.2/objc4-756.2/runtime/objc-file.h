@@ -24,7 +24,6 @@
 #ifndef _OBJC_FILE_NEW_H
 #define _OBJC_FILE_NEW_H
 
-#if __OBJC2__
 
 #include "objc-runtime-new.h"
 
@@ -91,6 +90,5 @@ foreach_data_segment(const headerType *mhdr,
     }
 }
 
-#endif
 
 #endif

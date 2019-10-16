@@ -47,19 +47,15 @@
 
 @interface __IncompleteProtocol : NSObject @end
 @implementation __IncompleteProtocol 
-#if __OBJC2__
 // fixme hack - make __IncompleteProtocol a non-lazy class
 + (void) load { } 
-#endif
 @end
 
 
 @implementation Protocol 
 
-#if __OBJC2__
 // fixme hack - make Protocol a non-lazy class
 + (void) load { } 
-#endif
 
 
 - (BOOL) conformsTo: (Protocol *)aProtocolObj
@@ -97,16 +93,10 @@
     return protocol_isEqual(self, other);
 }
 
-#if __OBJC2__
 - (NSUInteger)hash
 {
     return 23;
 }
-#else
-- (unsigned)hash
-{
-    return 23;
-}
-#endif
+
 
 @end

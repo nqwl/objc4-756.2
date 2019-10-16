@@ -182,17 +182,11 @@ private:
 };
 
 
-#if __OBJC2__
 typedef struct method_t *Method;
 typedef struct ivar_t *Ivar;
 typedef struct category_t *Category;
 typedef struct property_t *objc_property_t;
-#else
-typedef struct old_method *Method;
-typedef struct old_ivar *Ivar;
-typedef struct old_category *Category;
-typedef struct old_property *objc_property_t;
-#endif
+
 
 // Public headers
 
@@ -218,11 +212,8 @@ typedef struct old_property *objc_property_t;
 
 #include "objc-ptrauth.h"
 
-#if __OBJC2__
 #include "objc-runtime-new.h"
-#else
-#include "objc-runtime-old.h"
-#endif
+
 
 #include "objc-references.h"
 #include "objc-initialize.h"

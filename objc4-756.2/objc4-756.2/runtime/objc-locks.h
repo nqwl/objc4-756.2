@@ -57,10 +57,7 @@ extern void SideTableLocksSucceedLock(const void *oldlock);
 extern void SideTableLocksPrecedeLocks(StripedMap<spinlock_t>& newlocks);
 extern void SideTableLocksSucceedLocks(StripedMap<spinlock_t>& oldlocks);
 
-#if __OBJC2__
 #include "objc-locks-new.h"
-#else
-#include "objc-locks-old.h"
-#endif
+
 
 #endif

@@ -80,13 +80,11 @@ objc_initializeClassPair(Class _Nullable superclass, const char * _Nonnull name,
 // Returns nil if the superclass is nil and the class is not marked as a root.
 // Returns nil if the superclass is under construction.
 // Do not call objc_registerClassPair().
-#if __OBJC2__
 struct objc_image_info;
 OBJC_EXPORT Class _Nullable
 objc_readClassPair(Class _Nonnull cls,
                    const struct objc_image_info * _Nonnull info)
     OBJC_AVAILABLE(10.10, 8.0, 9.0, 1.0, 2.0);
-#endif
 
 // Batch object allocation using malloc_zone_batch_malloc().
 OBJC_EXPORT unsigned
@@ -108,11 +106,8 @@ instrumentObjcMessageSends(BOOL flag)
 // Initializer called by libSystem
 OBJC_EXPORT void
 _objc_init(void)
-#if __OBJC2__
     OBJC_AVAILABLE(10.8, 6.0, 9.0, 1.0, 2.0);
-#else
-    OBJC_AVAILABLE(10.12, 10.0, 10.0, 3.0, 2.0);
-#endif
+
 
 // fork() safety called by libSystem
 OBJC_EXPORT void
@@ -500,14 +495,12 @@ object_getMethodImplementation_stret(id _Nullable obj, SEL _Nonnull name)
  * value is returned, the caller must free the array with \c free().
  *
  */
-#if __OBJC2__
 OBJC_EXPORT _Nullable SEL * _Nullable
 class_addMethodsBulk(_Nullable Class cls, _Nonnull const SEL * _Nonnull names,
                      _Nonnull const IMP * _Nonnull imps,
                      const char * _Nonnull * _Nonnull types, uint32_t count,
                      uint32_t * _Nullable outFailedCount)
         OBJC_AVAILABLE(10.14, 12.0, 12.0, 5.0, 3.0);
-#endif
 
 /**
  * Replaces multiple methods in a class in bulk. This amortizes overhead that
@@ -520,7 +513,6 @@ class_addMethodsBulk(_Nullable Class cls, _Nonnull const SEL * _Nonnull names,
  *              arguments.
  * @param count The number of items in the names, imps, and types arrays.
  */
-#if __OBJC2__
 OBJC_EXPORT void
 class_replaceMethodsBulk(_Nullable Class cls,
                          _Nonnull const SEL * _Nonnull names,
@@ -528,7 +520,6 @@ class_replaceMethodsBulk(_Nullable Class cls,
                          const char * _Nonnull * _Nonnull types,
                          uint32_t count)
         OBJC_AVAILABLE(10.14, 12.0, 12.0, 5.0, 3.0);
-#endif
 
 
 // Instance-specific instance variable layout. This is no longer implemented.

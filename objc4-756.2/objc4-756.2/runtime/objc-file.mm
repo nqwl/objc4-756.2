@@ -21,7 +21,6 @@
  * @APPLE_LICENSE_HEADER_END@
  */
 
-#if __OBJC2__
 
 #include "objc-private.h"
 #include "objc-file.h"
@@ -107,4 +106,3 @@ _hasObjcContents(const header_info *hi)
 
 
 // OBJC2
-#endif

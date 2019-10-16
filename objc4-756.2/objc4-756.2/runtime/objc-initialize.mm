@@ -530,9 +530,7 @@ void initializeNonMetaClass(Class cls)
         // Only __OBJC2__ adds these handlers. !__OBJC2__ has a
         // bootstrapping problem of this versus CF's call to
         // objc_exception_set_functions().
-#if __OBJC2__
         @try
-#endif
         {
             callInitialize(cls);
 
@@ -541,7 +539,6 @@ void initializeNonMetaClass(Class cls)
                              pthread_self(), cls->nameForLogging());
             }
         }
-#if __OBJC2__
         @catch (...) {
             if (PrintInitializing) {
                 _objc_inform("INITIALIZE: thread %p: +[%s initialize] "
@@ -551,7 +548,6 @@ void initializeNonMetaClass(Class cls)
             @throw;
         }
         @finally
-#endif
         {
             // Done initializing.
             lockAndFinishInitializing(cls, supercls);

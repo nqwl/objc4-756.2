@@ -81,7 +81,6 @@
  ***********************************************************************/
 
 
-#if __OBJC2__
 
 #include "objc-private.h"
 #include "objc-cache.h"
@@ -1125,4 +1124,3 @@ static kern_return_t objc_task_threads
 
 
 // __OBJC2__
-#endif

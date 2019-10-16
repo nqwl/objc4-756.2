@@ -698,9 +698,8 @@ extern "C" uintptr_t objc_exitPoints[];
 
 static int _collecting_in_critical(void)
 {
-#if TARGET_OS_WIN32
-    return TRUE;
-#else
+
+
     thread_act_port_array_t threads;
     unsigned number;
     unsigned count;
@@ -760,7 +759,7 @@ static int _collecting_in_critical(void)
 
     // Return our finding
     return result;
-#endif
+
 }
 
 
@@ -890,11 +889,10 @@ void _cache_collect(bool collectALot)
             int slots = 1 << i;
             size_t size = sizeof(struct objc_cache) + TABLE_SIZE(slots);
             size_t ideal = size;
-#if TARGET_OS_WIN32
-            size_t malloc = size;
-#else
+
+
             size_t malloc = malloc_good_size(size);
-#endif
+
             size_t local = size < CACHE_ALLOCATOR_MIN ? malloc : cache_allocator_size_for_mask(cache_allocator_mask_for_size(size));
 
             if (!count) continue;

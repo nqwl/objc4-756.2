@@ -65,7 +65,7 @@
 #endif
 
 // Define SUPPORT_PREOPT=1 to enable dyld shared cache optimizations
-#if TARGET_OS_WIN32  ||  TARGET_OS_SIMULATOR
+#if TARGET_OS_SIMULATOR
 #   define SUPPORT_PREOPT 0
 #else
 #   define SUPPORT_PREOPT 1
@@ -100,7 +100,7 @@
 
 // Define SUPPORT_PACKED_ISA=1 on platforms that store the class in the isa 
 // field as a maskable pointer with other data around it.
-#if (!__LP64__  ||  TARGET_OS_WIN32  ||  \
+#if (!__LP64__  ||  \
      (TARGET_OS_SIMULATOR && !TARGET_OS_IOSMAC))
 #   define SUPPORT_PACKED_ISA 0
 #else
@@ -142,11 +142,7 @@
 #endif
 
 // Define SUPPORT_RETURN_AUTORELEASE to optimize autoreleased return values
-#if TARGET_OS_WIN32
-#   define SUPPORT_RETURN_AUTORELEASE 0
-#else
 #   define SUPPORT_RETURN_AUTORELEASE 1
-#endif
 
 // Define SUPPORT_STRET on architectures that need separate struct-return ABI.
 #if defined(__arm64__)

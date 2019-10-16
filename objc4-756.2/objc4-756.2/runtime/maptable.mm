@@ -515,36 +515,3 @@ const NXMapTablePrototype NXStrValueMapPrototype = {
     _mapStrHash, _mapStrIsEqual, _mapNoFree, 0
 };
 
-
-#if !__OBJC2__  &&  !TARGET_OS_WIN32
-
-/* This only works with class Object, which is unavailable. */
-
-/* Method prototypes */
-@interface DoesNotExist
-+ (id)class;
-+ (id)initialize;
-- (id)description;
-- (const char *)UTF8String;
-- (unsigned long)hash;
-- (BOOL)isEqual:(id)object;
-- (void)free;
-@end
-
-static unsigned _mapObjectHash(NXMapTable *table, const void *key) {
-    return [(id)key hash];
-}
-    
-static int _mapObjectIsEqual(NXMapTable *table, const void *key1, const void *key2) {
-    return [(id)key1 isEqual:(id)key2];
-}
-
-static void _mapObjectFree(NXMapTable *table, void *key, void *value) {
-    [(id)key free];
-}
-
-const NXMapTablePrototype NXObjectMapPrototype = {
-    _mapObjectHash, _mapObjectIsEqual, _mapObjectFree, 0
-};
-
-#endif

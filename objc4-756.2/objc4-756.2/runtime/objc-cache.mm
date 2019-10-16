@@ -691,9 +691,6 @@ extern "C"  uintptr_t objc_exitPoints[];
 
 static int _collecting_in_critical(void)
 {
-#if TARGET_OS_WIN32
-    return TRUE;
-#else
     thread_act_port_array_t threads;
     unsigned number;
     unsigned count;
@@ -758,7 +755,6 @@ static int _collecting_in_critical(void)
 
     // Return our finding
     return result;
-#endif
 }
 
 

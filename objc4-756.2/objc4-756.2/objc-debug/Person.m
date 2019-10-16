@@ -8,7 +8,7 @@
 #import "Person.h"
 
 @implementation Person
-+ (instancetype)allocWithZone:(struct _NSZone *)zone {
-    return nil;
-}
+//+ (instancetype)allocWithZone:(struct _NSZone *)zone {
+//    return nil;
+//}
 @end

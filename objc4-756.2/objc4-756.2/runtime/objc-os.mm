@@ -29,170 +29,7 @@
 #include "objc-private.h"
 #include "objc-loadmethod.h"
 
-#if TARGET_OS_WIN32
-
-#include "objc-runtime-old.h"
-#include "objcrt.h"
-
-const fork_unsafe_lock_t fork_unsafe_lock;
-
-int monitor_init(monitor_t *c) 
-{
-    // fixme error checking
-    HANDLE mutex = CreateMutex(NULL, TRUE, NULL);
-    while (!c->mutex) {
-        // fixme memory barrier here?
-        if (0 == InterlockedCompareExchangePointer(&c->mutex, mutex, 0)) {
-            // we win - finish construction
-            c->waiters = CreateSemaphore(NULL, 0, 0x7fffffff, NULL);
-            c->waitersDone = CreateEvent(NULL, FALSE, FALSE, NULL);
-            InitializeCriticalSection(&c->waitCountLock);
-            c->waitCount = 0;
-            c->didBroadcast = 0;
-            ReleaseMutex(c->mutex);    
-            return 0;
-        }
-    }
-
-    // someone else allocated the mutex and constructed the monitor
-    ReleaseMutex(mutex);
-    CloseHandle(mutex);
-    return 0;
-}
-
-void mutex_init(mutex_t *m)
-{
-    while (!m->lock) {
-        CRITICAL_SECTION *newlock = malloc(sizeof(CRITICAL_SECTION));
-        InitializeCriticalSection(newlock);
-        // fixme memory barrier here?
-        if (0 == InterlockedCompareExchangePointer(&m->lock, newlock, 0)) {
-            return;
-        }
-        // someone else installed their lock first
-        DeleteCriticalSection(newlock);
-        free(newlock);
-    }
-}
-
-
-void recursive_mutex_init(recursive_mutex_t *m)
-{
-    // fixme error checking
-    HANDLE newmutex = CreateMutex(NULL, FALSE, NULL);
-    while (!m->mutex) {
-        // fixme memory barrier here?
-        if (0 == InterlockedCompareExchangePointer(&m->mutex, newmutex, 0)) {
-            // we win
-            return;
-        }
-    }
-    
-    // someone else installed their lock first
-    CloseHandle(newmutex);
-}
-
-
-WINBOOL APIENTRY DllMain( HMODULE hModule,
-                       DWORD  ul_reason_for_call,
-                       LPVOID lpReserved
-					 )
-{
-    switch (ul_reason_for_call) {
-    case DLL_PROCESS_ATTACH:
-        environ_init();
-        tls_init();
-        lock_init();
-        sel_init(3500);  // old selector heuristic
-        exception_init();
-        break;
-
-    case DLL_THREAD_ATTACH:
-        break;
-
-    case DLL_THREAD_DETACH:
-    case DLL_PROCESS_DETACH:
-        break;
-    }
-    return TRUE;
-}
-
-OBJC_EXPORT void *_objc_init_image(HMODULE image, const objc_sections *sects)
-{
-    header_info *hi = malloc(sizeof(header_info));
-    size_t count, i;
-
-    hi->mhdr = (const headerType *)image;
-    hi->info = sects->iiStart;
-    hi->allClassesRealized = NO;
-    hi->modules = sects->modStart ? (Module *)((void **)sects->modStart+1) : 0;
-    hi->moduleCount = (Module *)sects->modEnd - hi->modules;
-    hi->protocols = sects->protoStart ? (struct old_protocol **)((void **)sects->protoStart+1) : 0;
-    hi->protocolCount = (struct old_protocol **)sects->protoEnd - hi->protocols;
-    hi->imageinfo = NULL;
-    hi->imageinfoBytes = 0;
-    // hi->imageinfo = sects->iiStart ? (uint8_t *)((void **)sects->iiStart+1) : 0;;
-//     hi->imageinfoBytes = (uint8_t *)sects->iiEnd - hi->imageinfo;
-    hi->selrefs = sects->selrefsStart ? (SEL *)((void **)sects->selrefsStart+1) : 0;
-    hi->selrefCount = (SEL *)sects->selrefsEnd - hi->selrefs;
-    hi->clsrefs = sects->clsrefsStart ? (Class *)((void **)sects->clsrefsStart+1) : 0;
-    hi->clsrefCount = (Class *)sects->clsrefsEnd - hi->clsrefs;
-
-    count = 0;
-    for (i = 0; i < hi->moduleCount; i++) {
-        if (hi->modules[i]) count++;
-    }
-    hi->mod_count = 0;
-    hi->mod_ptr = 0;
-    if (count > 0) {
-        hi->mod_ptr = malloc(count * sizeof(struct objc_module));
-        for (i = 0; i < hi->moduleCount; i++) {
-            if (hi->modules[i]) memcpy(&hi->mod_ptr[hi->mod_count++], hi->modules[i], sizeof(struct objc_module));
-        }
-    }
-    
-    hi->moduleName = malloc(MAX_PATH * sizeof(TCHAR));
-    GetModuleFileName((HMODULE)(hi->mhdr), hi->moduleName, MAX_PATH * sizeof(TCHAR));
-
-    appendHeader(hi);
-
-    if (PrintImages) {
-        _objc_inform("IMAGES: loading image for %s%s%s%s\n", 
-                     hi->fname, 
-                     headerIsBundle(hi) ? " (bundle)" : "", 
-                     hi->info->isReplacement() ? " (replacement)":"", 
-                     hi->info->hasCategoryClassProperties() ? " (has class properties)":"");
-    }
-
-    // Count classes. Size various table based on the total.
-    int total = 0;
-    int unoptimizedTotal = 0;
-    {
-      if (_getObjc2ClassList(hi, &count)) {
-        total += (int)count;
-        if (!hi->getInSharedCache()) unoptimizedTotal += count;
-      }
-    }
-
-    _read_images(&hi, 1, total, unoptimizedTotal);
-
-    return hi;
-}
-
-OBJC_EXPORT void _objc_load_image(HMODULE image, header_info *hinfo)
-{
-    prepare_load_methods(hinfo);
-    call_load_methods();
-}
-
-OBJC_EXPORT void _objc_unload_image(HMODULE image, header_info *hinfo)
-{
-    _objc_fatal("image unload not supported");
-}
-
-
-// TARGET_OS_WIN32
-#elif TARGET_OS_MAC
+#if TARGET_OS_MAC
 
 #include "objc-file-old.h"
 #include "objc-file.h"
@@ -246,9 +83,7 @@ static header_info * addHeader(const headerType *mhdr, const char *path, int &to
             _objc_inform("PREOPTIMIZATION: honoring preoptimized header info at %p for %s", hi, hi->fname());
         }
 
-#if !__OBJC2__
-        _objc_fatal("shouldn't be here");
-#endif
+
 #if DEBUG
         // Verify image_info
         size_t info_size = 0;
@@ -279,11 +114,7 @@ static header_info * addHeader(const headerType *mhdr, const char *path, int &to
 
         // Set up the new header_info entry.
         hi->setmhdr(mhdr);
-#if !__OBJC2__
-        // mhdr must already be set
-        hi->mod_count = 0;
-        hi->mod_ptr = _getObjcModules(hi, &hi->mod_count);
-#endif
+
         // Install a placeholder image_info if absent to simplify code elsewhere
         static const objc_image_info emptyInfo = {0, 0};
         hi->setinfo(image_info ?: &emptyInfo);
@@ -391,26 +222,13 @@ static bool shouldRejectGCImage(const headerType *mhdr)
     objc_image_info *image_info;
     size_t size;
     
-#if !__OBJC2__
-    unsigned long seg_size;
-    // 32-bit: __OBJC seg but no image_info means no GC support
-    if (!getsegmentdata(mhdr, "__OBJC", &seg_size)) {
-        // Not objc, therefore not GC. Don't reject it.
-        return NO;
-    }
-    image_info = _getObjcImageInfo(mhdr, &size);
-    if (!image_info) {
-        // No image_info, therefore not GC. Don't reject it.
-        return NO;
-    }
-#else
+
     // 64-bit: no image_info means no objc at all
     image_info = _getObjcImageInfo(mhdr, &size);
     if (!image_info) {
         // Not objc, therefore not GC. Don't reject it.
         return NO;
     }
-#endif
 
     return image_info->requiresGC();
 }
@@ -879,11 +697,11 @@ void _objc_init(void)
     initialized = true;
     
     // fixme defer initialization until an objc-using image is found?
-    environ_init();//对log系统的初始化
+    environ_init();//对l环境的初始化
     tls_init();
-    static_init();
-    lock_init();
-    exception_init();
+    static_init();//涉及到mach-o文件的构成
+    lock_init();//跟锁相关
+    exception_init();//跟异常相关
 
     _dyld_objc_notify_register(&map_images, load_images, unmap_image);
 }

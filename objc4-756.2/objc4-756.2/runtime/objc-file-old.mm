@@ -28,46 +28,6 @@
 #include "objc-runtime-old.h"
 #include "objc-file-old.h"
 
-#if TARGET_OS_WIN32
-
-/*
-Module 
-_getObjcModules(const header_info *hi, size_t *nmodules)
-{
-    if (nmodules) *nmodules = hi->moduleCount;
-    return hi->modules;
-}
-*/
-SEL *
-_getObjcSelectorRefs(const header_info *hi, size_t *nmess)
-{
-    if (nmess) *nmess = hi->selrefCount;
-    return hi->selrefs;
-}
-
-struct old_protocol **
-_getObjcProtocols(const header_info *hi, size_t *nprotos)
-{
-    if (nprotos) *nprotos = hi->protocolCount;
-    return hi->protocols;
-}
-
-Class*
-_getObjcClassRefs(const header_info *hi, size_t *nclasses)
-{
-    if (nclasses) *nclasses = hi->clsrefCount;
-    return (Class*)hi->clsrefs;
-}
-
-// __OBJC,__class_names section only emitted by CodeWarrior  rdar://4951638
-const char *
-_getObjcClassNames(const header_info *hi, size_t *size)
-{
-    if (size) *size = 0;
-    return NULL;
-}
-
-#else
 
 #define GETSECT(name, type, segname, sectname)                          \
     type *name(const headerType *mhdr, size_t *outCount)                \
@@ -158,8 +118,5 @@ _hasObjcContents(const header_info *hi)
 
     return NO;
 }
-
-
-#endif
 
 #endif

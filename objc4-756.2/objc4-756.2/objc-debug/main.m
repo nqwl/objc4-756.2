@@ -12,10 +12,11 @@ int main(int argc, const char * argv[]) {
         // insert code here...
 //        Person *object = [[Person alloc] init];
         printf("TARGET_OS_MAC: %d\n",TARGET_OS_MAC);
-        printf("TARGET_OS_WIN32: %d\n",TARGET_OS_WIN32);
-        NSObject *object = [[NSObject alloc] init];
+
+        Person *oa = [Person alloc];
+        Person *object = [oa init];
 //        NSObject *object = [NSObject alloc];
-        NSLog(@"Hello, World! %@",object);
+        NSLog(@"Hello, World! %@  %@",object,oa);
 
     }
     return 0;

@@ -320,9 +320,6 @@ static TrampolineBlockPageGroup *HeadPageGroup;
 
 #pragma mark Utility Functions
 
-#if !__OBJC2__
-#define runtimeLock classLock
-#endif
 
 #pragma mark Trampoline Management Functions
 static TrampolineBlockPageGroup *_allocateTrampolinesAndData()

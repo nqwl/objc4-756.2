@@ -1213,15 +1213,7 @@ Class class_poseAs(Class imposter, Class original)
     }
 
     // Build a string to use to replace the name of the original class.
-#if TARGET_OS_WIN32
-#   define imposterNamePrefix "_%"
-    imposterNamePtr = malloc(strlen(original->name) + strlen(imposterNamePrefix) + 1);
-    strcpy(imposterNamePtr, imposterNamePrefix);
-    strcat(imposterNamePtr, original->name);
-#   undef imposterNamePrefix
-#else
     asprintf(&imposterNamePtr, "_%%%s", original->name);
-#endif
 
     // We lock the class hashtable, so we are thread safe with respect to
     // calls to objc_getClass ().  However, the class names are not

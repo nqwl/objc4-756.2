@@ -197,15 +197,7 @@ _objc_setBadAllocHandler(id _Nullable (* _Nonnull newHandler)
     OBJC_AVAILABLE(10.8, 6.0, 9.0, 1.0, 2.0);
 
 // Used by ExceptionHandling.framework
-#if !__OBJC2__
-OBJC_EXPORT void
-_objc_error(id _Nullable rcv, const char * _Nonnull fmt, va_list args)
-    __attribute__((noreturn))
-    __OSX_DEPRECATED(10.0, 10.5, "use other logging facilities instead") 
-    __IOS_UNAVAILABLE __TVOS_UNAVAILABLE
-    __WATCHOS_UNAVAILABLE __BRIDGEOS_UNAVAILABLE;
 
-#endif
 
 
 /**

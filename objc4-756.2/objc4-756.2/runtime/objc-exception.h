@@ -27,67 +27,6 @@
 #include <objc/objc.h>
 #include <stdint.h>
 
-#if !__OBJC2__
-
-// compiler reserves a setjmp buffer + 4 words as localExceptionData
-
-OBJC_EXPORT void
-objc_exception_throw(id _Nonnull exception)
-    __OSX_AVAILABLE(10.3) 
-    __IOS_UNAVAILABLE __TVOS_UNAVAILABLE
-    __WATCHOS_UNAVAILABLE __BRIDGEOS_UNAVAILABLE;
-
-OBJC_EXPORT void
-objc_exception_try_enter(void * _Nonnull localExceptionData)
-    __OSX_AVAILABLE(10.3) 
-    __IOS_UNAVAILABLE __TVOS_UNAVAILABLE
-    __WATCHOS_UNAVAILABLE __BRIDGEOS_UNAVAILABLE;
-
-OBJC_EXPORT void
-objc_exception_try_exit(void * _Nonnull localExceptionData)
-    __OSX_AVAILABLE(10.3) 
-    __IOS_UNAVAILABLE __TVOS_UNAVAILABLE
-    __WATCHOS_UNAVAILABLE __BRIDGEOS_UNAVAILABLE;
-
-OBJC_EXPORT id _Nonnull
-objc_exception_extract(void * _Nonnull localExceptionData)
-    __OSX_AVAILABLE(10.3) 
-    __IOS_UNAVAILABLE __TVOS_UNAVAILABLE
-    __WATCHOS_UNAVAILABLE __BRIDGEOS_UNAVAILABLE;
-
-OBJC_EXPORT int objc_exception_match(Class _Nonnull exceptionClass,
-                                     id _Nonnull exception)
-    __OSX_AVAILABLE(10.3) 
-    __IOS_UNAVAILABLE __TVOS_UNAVAILABLE
-    __WATCHOS_UNAVAILABLE __BRIDGEOS_UNAVAILABLE;
-
-
-typedef struct {
-    int version;
-    void (* _Nonnull throw_exc)(id _Nonnull);	          // version 0
-    void (* _Nonnull try_enter)(void * _Nonnull);         // version 0
-    void (* _Nonnull try_exit)(void * _Nonnull);          // version 0
-    id _Nonnull (* _Nonnull extract)(void * _Nonnull);    // version 0
-    int	(* _Nonnull match)(Class _Nonnull, id _Nonnull);  // version 0
-} objc_exception_functions_t;
-
-// get table; version tells how many
-OBJC_EXPORT void
-objc_exception_get_functions(objc_exception_functions_t * _Nullable table)
-    __OSX_AVAILABLE(10.3) 
-    __IOS_UNAVAILABLE __TVOS_UNAVAILABLE
-    __WATCHOS_UNAVAILABLE __BRIDGEOS_UNAVAILABLE;
-
-// set table
-OBJC_EXPORT void
-objc_exception_set_functions(objc_exception_functions_t * _Nullable table)
-    __OSX_AVAILABLE(10.3) 
-    __IOS_UNAVAILABLE __TVOS_UNAVAILABLE
-    __WATCHOS_UNAVAILABLE __BRIDGEOS_UNAVAILABLE;
-
-
-// !__OBJC2__
-#else
 // __OBJC2__
 
 typedef id _Nonnull (*objc_exception_preprocessor)(id _Nonnull exception);
@@ -150,7 +89,6 @@ objc_removeExceptionHandler(uintptr_t token)
     __WATCHOS_UNAVAILABLE __BRIDGEOS_UNAVAILABLE;
 
 // __OBJC2__
-#endif
 
 #endif  // __OBJC_EXCEPTION_H_
 

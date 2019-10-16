@@ -2125,11 +2125,10 @@ static void _objc_fixup_selector_refs   (const header_info *hi)
 }
 
 static inline bool _is_threaded() {
-#if TARGET_OS_WIN32
-    return YES;
-#else
+
+
     return pthread_is_threaded_np() != 0;
-#endif
+
 }
 
 #if !TARGET_OS_WIN32
@@ -2323,13 +2322,8 @@ void prepare_load_methods(const headerType *mhdr)
 }
 
 
-#if TARGET_OS_WIN32
 
-void unload_class(Class cls)
-{
-}
 
-#else
 
 /***********************************************************************
 * _objc_remove_classes_in_image
@@ -2704,7 +2698,7 @@ void _unload_image(header_info *hi)
     if (DebugUnload) unload_paranoia(hi);
 }
 
-#endif
+
 
 
 /***********************************************************************
@@ -3154,23 +3148,20 @@ const char **objc_copyImageNames(unsigned int *outCount)
     header_info *hi;
     int count = 0;
     int max = HeaderCount;
-#if TARGET_OS_WIN32
-    const TCHAR **names = (const TCHAR **)calloc(max+1, sizeof(TCHAR *));
-#else
+
+
     const char **names = (const char **)calloc(max+1, sizeof(char *));
-#endif
+
 
     for (hi = FirstHeader; hi != NULL && count < max; hi = hi->getNext()) {
-#if TARGET_OS_WIN32
-        if (hi->moduleName) {
-            names[count++] = hi->moduleName;
-        }
-#else
+
+
         const char *fname = hi->fname();
         if (fname) {
             names[count++] = fname;
         }
-#endif
+
+
     }
     names[count] = NULL;
 
@@ -3248,11 +3239,11 @@ objc_copyClassNamesForImage(const char *image, unsigned int *outCount)
 
     // Find the image.
     for (hi = FirstHeader; hi != NULL; hi = hi->getNext()) {
-#if TARGET_OS_WIN32
-        if (0 == wcscmp((TCHAR *)image, hi->moduleName)) break;
-#else
+
+
         if (0 == strcmp(image, hi->fname())) break;
-#endif
+
+
     }
 
     if (!hi) {

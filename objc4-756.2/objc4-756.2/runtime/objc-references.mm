@@ -165,10 +165,7 @@ namespace objc_references_support {
         bool hasValue() { return _value != nil; }
     };
 
-#if TARGET_OS_WIN32
-    typedef hash_map<void *, ObjcAssociation> ObjectAssociationMap;
-    typedef hash_map<disguised_ptr_t, ObjectAssociationMap *> AssociationsHashMap;
-#else
+
     typedef ObjcAllocator<std::pair<void * const, ObjcAssociation> > ObjectAssociationMapAllocator;
     class ObjectAssociationMap : public std::map<void *, ObjcAssociation, ObjectPointerLess, ObjectAssociationMapAllocator> {
     public:
@@ -181,7 +178,7 @@ namespace objc_references_support {
         void *operator new(size_t n) { return ::malloc(n); }
         void operator delete(void *ptr) { ::free(ptr); }
     };
-#endif
+
 }
 
 using namespace objc_references_support;

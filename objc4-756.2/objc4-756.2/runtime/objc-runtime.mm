@@ -383,14 +383,13 @@ logReplacedMethod(const char *className, SEL s,
     // Silently ignore +load replacement because category +load is special
     if (s == SEL_load) return;
 
-#if TARGET_OS_WIN32
-    // don't know dladdr()/dli_fname equivalent
-#else
+
+
     Dl_info dl;
 
     if (dladdr((void*)oldImp, &dl)  &&  dl.dli_fname) oldImage = dl.dli_fname;
     if (dladdr((void*)newImp, &dl)  &&  dl.dli_fname) newImage = dl.dli_fname;
-#endif
+
     
     _objc_inform("REPLACED: %c[%s %s]  %s%s  (IMP was %p (%s), now %p (%s))",
                  isMeta ? '+' : '-', className, sel_getName(s), 
@@ -474,14 +473,6 @@ void _objcInit(void)
 * objc_setForwardHandler
 **********************************************************************/
 
-#if !__OBJC2__
-
-// Default forward handler (nil) goes to forward:: dispatch.
-void *_objc_forward_handler = nil;
-void *_objc_forward_stret_handler = nil;
-
-#else
-
 // Default forward handler halts the process.
 __attribute__((noreturn)) void 
 objc_defaultForwardHandler(id self, SEL sel)
@@ -503,7 +494,6 @@ objc_defaultForwardStretHandler(id self, SEL sel)
 void *_objc_forward_stret_handler = (void*)objc_defaultForwardStretHandler;
 #endif
 
-#endif
 
 void objc_setForwardHandler(void *fwd, void *fwd_stret)
 {
@@ -514,16 +504,11 @@ void objc_setForwardHandler(void *fwd, void *fwd_stret)
 }
 
 
-#if !__OBJC2__
-// GrP fixme
-extern "C" Class _objc_getOrigClass(const char *name);
-#endif
+
 
 static BOOL internal_class_getImageName(Class cls, const char **outName)
 {
-#if !__OBJC2__
-    cls = _objc_getOrigClass(cls->demangledName());
-#endif
+
     auto result = dyld_image_path_containing_address(cls);
     *outName = result;
     return (result != nil);

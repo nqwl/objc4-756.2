@@ -4639,26 +4639,21 @@ const char **objc_copyImageNames(unsigned int *outCount)
 {
     mutex_locker_t lock(runtimeLock);
     
-#if TARGET_OS_WIN32
-    const TCHAR **names = (const TCHAR **)
-        malloc((HeaderCount+1) * sizeof(TCHAR *));
-#else
+
+
     const char **names = (const char **)
         malloc((HeaderCount+1) * sizeof(char *));
-#endif
+
 
     unsigned int count = 0;
     for (header_info *hi = FirstHeader; hi != nil; hi = hi->getNext()) {
-#if TARGET_OS_WIN32
-        if (hi->moduleName) {
-            names[count++] = hi->moduleName;
-        }
-#else
+
+
         const char *fname = hi->fname();
         if (fname) {
             names[count++] = fname;
         }
-#endif
+
     }
     names[count] = nil;
     
@@ -4732,11 +4727,10 @@ objc_copyClassNamesForImage(const char *image, unsigned int *outCount)
     // Find the image.
     header_info *hi;
     for (hi = FirstHeader; hi != nil; hi = hi->getNext()) {
-#if TARGET_OS_WIN32
-        if (0 == wcscmp((TCHAR *)image, hi->moduleName)) break;
-#else
+
+
         if (0 == strcmp(image, hi->fname())) break;
-#endif
+
     }
 
     if (!hi) {

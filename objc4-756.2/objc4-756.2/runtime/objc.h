@@ -233,28 +233,4 @@ OBJC_EXPORT objc_objectptr_t _Nullable objc_unretainedPointer(id _Nullable obj)
     ;
 
 
-#if !__OBJC2__
-
-// The following declarations are provided here for source compatibility.
-
-#if defined(__LP64__)
-    typedef long arith_t;
-    typedef unsigned long uarith_t;
-#   define ARITH_SHIFT 32
-#else
-    typedef int arith_t;
-    typedef unsigned uarith_t;
-#   define ARITH_SHIFT 16
-#endif
-
-typedef char *STR;
-
-#define ISSELECTOR(sel) sel_isMapped(sel)
-#define SELNAME(sel)	sel_getName(sel)
-#define SELUID(str)	sel_getUid(str)
-#define NAMEOF(obj)     object_getClassName(obj)
-#define IV(obj)         object_getIndexedIvars(obj)
-
-#endif
-
 #endif  /* _OBJC_OBJC_H_ */

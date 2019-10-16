@@ -69,26 +69,14 @@
 
 - (struct objc_method_description *) descriptionForInstanceMethod:(SEL)aSel
 {
-#if !__OBJC2__
-    return lookup_protocol_method((struct old_protocol *)self, aSel, 
-                                  YES/*required*/, YES/*instance*/, 
-                                  YES/*recursive*/);
-#else
     return method_getDescription(protocol_getMethod((struct protocol_t *)self, 
                                                      aSel, YES, YES, YES));
-#endif
 }
 
 - (struct objc_method_description *) descriptionForClassMethod:(SEL)aSel
 {
-#if !__OBJC2__
-    return lookup_protocol_method((struct old_protocol *)self, aSel, 
-                                  YES/*required*/, NO/*instance*/, 
-                                  YES/*recursive*/);
-#else
     return method_getDescription(protocol_getMethod((struct protocol_t *)self, 
                                                     aSel, YES, NO, YES));
-#endif
 }
 
 - (const char *)name
@@ -98,7 +86,6 @@
 
 - (BOOL)isEqual:other
 {
-#if __OBJC2__
     // check isKindOf:
     Class cls;
     Class protoClass = objc_getClass("Protocol");
@@ -108,9 +95,6 @@
     if (!cls) return NO;
     // check equality
     return protocol_isEqual(self, other);
-#else
-    return [other isKindOf:[Protocol class]] && [self conformsTo: other] && [other conformsTo: self];
-#endif
 }
 
 #if __OBJC2__

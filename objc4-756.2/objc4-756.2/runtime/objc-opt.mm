@@ -312,10 +312,6 @@ struct objc_headeropt_rw_t {
 
 header_info *preoptimizedHinfoForHeader(const headerType *mhdr)
 {
-#if !__OBJC2__
-    // fixme old ABI shared cache doesn't prepare these properly
-    return nil;
-#endif
 
     objc_headeropt_ro_t *hinfos = opt ? opt->headeropt_ro() : nil;
     if (hinfos) return hinfos->get(mhdr);
@@ -325,10 +321,7 @@ header_info *preoptimizedHinfoForHeader(const headerType *mhdr)
 
 header_info_rw *getPreoptimizedHeaderRW(const struct header_info *const hdr)
 {
-#if !__OBJC2__
-    // fixme old ABI shared cache doesn't prepare these properly
-    return nil;
-#endif
+
     
     objc_headeropt_ro_t *hinfoRO = opt ? opt->headeropt_ro() : nil;
     objc_headeropt_rw_t *hinfoRW = opt ? opt->headeropt_rw() : nil;

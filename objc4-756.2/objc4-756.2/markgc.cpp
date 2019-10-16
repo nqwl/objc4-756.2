@@ -541,7 +541,7 @@ bool parse_fat(uint8_t *buffer, size_t size)
                 printf("file is badly formed\n");
                 return false;
             }
-
+            //去校验合法性
             bool ok = parse_macho(buffer + arch_offset);
             if (!ok) return false;
         }
@@ -552,6 +552,7 @@ bool parse_fat(uint8_t *buffer, size_t size)
 bool processFile(const char *filename)
 {
     if (debug) printf("file %s\n", filename);
+    //打开文件
     int fd = open(filename, O_RDWR);
     if (fd < 0) {
         printf("open %s: %s\n", filename, strerror(errno));
@@ -559,19 +560,21 @@ bool processFile(const char *filename)
     }
     
     struct stat st;
+    //获取文件状态
     if (fstat(fd, &st) < 0) {
         printf("fstat %s: %s\n", filename, strerror(errno));
         return false;
     }
-
+    //将文件映射进内存进行处理
     void *buffer = mmap(NULL, (size_t)st.st_size, PROT_READ|PROT_WRITE, 
                         MAP_FILE|MAP_SHARED, fd, 0);
     if (buffer == MAP_FAILED) {
         printf("mmap %s: %s\n", filename, strerror(errno));
         return false;
     }
-
+    //开始处理进入内存后的文件
     bool result = parse_fat((uint8_t *)buffer, (size_t)st.st_size);
+    //解除映射关系
     munmap(buffer, (size_t)st.st_size);
     close(fd);
     return result;

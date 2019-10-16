@@ -432,6 +432,7 @@ unmap_image_nolock(const struct mach_header *mh)
 * libc calls _objc_init() before dyld would call our static constructors, 
 * so we have to do it ourselves.
 **********************************************************************/
+//找出__objc_init_func区的数据，获取了Initializer指针，然后按顺序调用。
 static void static_init()
 {
     size_t count;
@@ -634,7 +635,7 @@ void _objc_init(void)
     // fixme defer initialization until an objc-using image is found?
     environ_init();//对l环境的初始化
     tls_init();
-    static_init();//涉及到mach-o文件的构成
+    static_init();//涉及到mach-o文件的构成,运行C++的静态构造函数.其原因在于dyld调用我们的静态构造函数晚于libc调用_objc_init函数。
     lock_init();//跟锁相关
     exception_init();//跟异常相关
 

@@ -637,7 +637,7 @@ struct magic_t {
 #   undef M1
 };
     
-
+//AutoreleasePoolPage是个链表结构，有parent以及child
 class AutoreleasePoolPage 
 {
     // EMPTY_POOL_PLACEHOLDER is stored in TLS when exactly one pool is 

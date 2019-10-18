@@ -32,7 +32,7 @@ static const objc_selopt_t *builtins = NULL;
 
 
 static size_t SelrefCount = 0;
-
+//被注册的selector会被放到一个静态变量namedSelectors
 static NXMapTable *namedSelectors;
 
 static SEL search_builtins(const char *key);
@@ -63,7 +63,8 @@ void sel_init(size_t selrefCount)
 #endif
 
     // Register selectors used by libobjc
-
+    //#表示：对应变量字符串化
+    //##表示：把宏参数名与宏定义代码序列中的标识符连接在一起，形成一个新的标识符
 #define s(x) SEL_##x = sel_registerNameNoLock(#x, NO)
 #define t(x,y) SEL_##y = sel_registerNameNoLock(#x, NO)
 
@@ -133,7 +134,7 @@ static SEL search_builtins(const char *name)
     return nil;
 }
 
-
+//selector添加到MapTable中
 static SEL __sel_registerName(const char *name, bool shouldLock, bool copy) 
 {
     SEL result = 0;

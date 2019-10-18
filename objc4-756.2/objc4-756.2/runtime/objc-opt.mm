@@ -119,7 +119,7 @@ __BEGIN_DECLS
 // preopt: the actual opt used at runtime (nil or &_objc_opt_data)
 // _objc_opt_data: opt data possibly written by dyld
 // opt is initialized to ~0 to detect incorrect use before preopt_init()
-
+//静态变量
 static const objc_opt_t *opt = (objc_opt_t *)~0;
 static uintptr_t shared_cache_start;
 static uintptr_t shared_cache_end;
@@ -337,6 +337,11 @@ header_info_rw *getPreoptimizedHeaderRW(const struct header_info *const hdr)
 
 void preopt_init(void)
 {
+    //类的缓存clsopt()
+    //协议的缓存protocolopt()
+    //头的缓存headeropt_rw()
+    //选择器的缓存selopt()
+
     // Get the memory region occupied by the shared cache.
     size_t length;
     const void *start = _dyld_get_shared_cache_range(&length);

@@ -2402,6 +2402,7 @@ map_images(unsigned count, const char * const paths[],
            const struct mach_header * const mhdrs[])
 {
     mutex_locker_t lock(runtimeLock);
+    //关键，将传入的mhdrs数组转换成header_info数组输出
     return map_images_nolock(count, paths, mhdrs);
 }
 

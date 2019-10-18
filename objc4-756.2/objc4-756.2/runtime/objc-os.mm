@@ -55,6 +55,12 @@ bool bad_magic(const headerType *mhdr)
 }
 
 
+/*
+    判断一下当前的header在dyld的共享缓存中有没有
+    如果有的话直接设置已加载
+    如果共享缓存中没有，那么就实行“封装操作”
+    封装成功以后，加入到链表中。
+ */
 static header_info * addHeader(const headerType *mhdr, const char *path, int &totalClasses, int &unoptimizedTotalClasses)
 {
     header_info *hi;
@@ -64,10 +70,11 @@ static header_info * addHeader(const headerType *mhdr, const char *path, int &to
     bool inSharedCache = false;
 
     // Look for hinfo from the dyld shared cache.
+    //查看是在共享缓存中是否有 hinfo
     hi = preoptimizedHinfoForHeader(mhdr);
     if (hi) {
         // Found an hinfo in the dyld shared cache.
-
+        //dlyd的共享缓存其实是由两个变量来决定的一个opt存放动态缓存数据，另一个preoptimized存放标志位
         // Weed out duplicates.
         if (hi->isLoaded()) {
             return NULL;
@@ -248,7 +255,9 @@ void
 map_images_nolock(unsigned mhCount, const char * const mhPaths[],
                   const struct mach_header * const mhdrs[])
 {
+    //该tag表明是否是第一次调用该方法。
     static bool firstTime = YES;
+    //头信息列表
     header_info *hList[mhCount];
     uint32_t hCount;
     size_t selrefCount = 0;
@@ -257,6 +266,7 @@ map_images_nolock(unsigned mhCount, const char * const mhPaths[],
     // This function is called before ordinary library initializers. 
     // fixme defer initialization until an objc-using image is found?
     if (firstTime) {
+        //opt初始化时机
         preopt_init();
     }
 
@@ -274,14 +284,15 @@ map_images_nolock(unsigned mhCount, const char * const mhPaths[],
     {
         uint32_t i = mhCount;
         while (i--) {
+            //遍历头信息
             const headerType *mhdr = (const headerType *)mhdrs[i];
-
+            //给原始的头信息添加其他必要信息,将mach_header转换成header_info
             auto hi = addHeader(mhdr, mhPaths[i], totalClasses, unoptimizedTotalClasses);
             if (!hi) {
                 // no objc data in this entry
                 continue;
             }
-            
+            //如果该头信息是可执行文件类型，则给方法个数添加相应值
             if (mhdr->filetype == MH_EXECUTE) {
                 // Size some data structures based on main executable's size
                 size_t count;
@@ -290,16 +301,6 @@ map_images_nolock(unsigned mhCount, const char * const mhPaths[],
                 _getObjc2MessageRefs(hi, &count);
                 selrefCount += count;
 
-#if SUPPORT_GC_COMPAT
-                // Halt if this is a GC app.
-                if (shouldRejectGCApp(hi)) {
-                    _objc_fatal_with_reason
-                        (OBJC_EXIT_REASON_GC_NOT_SUPPORTED, 
-                         OS_REASON_FLAG_CONSISTENT_FAILURE, 
-                         "Objective-C garbage collection " 
-                         "is no longer supported.");
-                }
-#endif
             }
             
             hList[hCount++] = hi;
@@ -325,25 +326,6 @@ map_images_nolock(unsigned mhCount, const char * const mhPaths[],
         sel_init(selrefCount);
         arr_init();
 
-#if SUPPORT_GC_COMPAT
-        // Reject any GC images linked to the main executable.
-        // We already rejected the app itself above.
-        // Images loaded after launch will be rejected by dyld.
-
-        for (uint32_t i = 0; i < hCount; i++) {
-            auto hi = hList[i];
-            auto mh = hi->mhdr();
-            if (mh->filetype != MH_EXECUTE  &&  shouldRejectGCImage(mh)) {
-                _objc_fatal_with_reason
-                    (OBJC_EXIT_REASON_GC_NOT_SUPPORTED, 
-                     OS_REASON_FLAG_CONSISTENT_FAILURE, 
-                     "%s requires Objective-C garbage collection "
-                     "which is no longer supported.", hi->fname());
-            }
-        }
-#endif
-
-#if TARGET_OS_OSX
         // Disable +initialize fork safety if the app is too old (< 10.13).
         // Disable +initialize fork safety if the app has a
         //   __DATA,__objc_fork_ok section.
@@ -373,11 +355,11 @@ map_images_nolock(unsigned mhCount, const char * const mhPaths[],
             }
             break;  // assume only one MH_EXECUTE image
         }
-#endif
 
     }
 
     if (hCount > 0) {
+        //这里读取images
         _read_images(hList, hCount, totalClasses, unoptimizedTotalClasses);
     }
 
@@ -638,7 +620,9 @@ void _objc_init(void)
     static_init();//涉及到mach-o文件的构成,运行C++的静态构造函数.其原因在于dyld调用我们的静态构造函数晚于libc调用_objc_init函数。
     lock_init();//跟锁相关
     exception_init();//跟异常相关
+    //该方法是runtime特有的方法。该方法的调用时机是，当oc对象、镜像（images）被映射（mapped），未被映射（unmapped），以及被初始化了（initialized）。这个方法是dlyd中声明的，一旦调用该方法，调用结果会作为该函数的参数回传回来。比如，当所有的images以及section为“objc-image-info”被加载之后会回调mapped方法。load方法也将在这个方法中被调用。
 
+    //
     _dyld_objc_notify_register(&map_images, load_images, unmap_image);
 }
 

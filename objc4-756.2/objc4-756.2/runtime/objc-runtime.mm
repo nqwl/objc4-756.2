@@ -386,7 +386,7 @@ logReplacedMethod(const char *className, SEL s,
 
 
     Dl_info dl;
-
+    //使用dladdr方法可以获得一个函数所在模块，名称以及地址。
     if (dladdr((void*)oldImp, &dl)  &&  dl.dli_fname) oldImage = dl.dli_fname;
     if (dladdr((void*)newImp, &dl)  &&  dl.dli_fname) newImage = dl.dli_fname;
 

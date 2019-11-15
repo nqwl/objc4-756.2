@@ -359,7 +359,7 @@ map_images_nolock(unsigned mhCount, const char * const mhPaths[],
     }
 
     if (hCount > 0) {
-        //这里读取images
+        //这里读取images,读取各个 section 中的数据并放到缓存中
         _read_images(hList, hCount, totalClasses, unoptimizedTotalClasses);
     }
 

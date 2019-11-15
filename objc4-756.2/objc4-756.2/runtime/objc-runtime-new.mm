@@ -773,6 +773,7 @@ attachCategories(Class cls, category_list *cats, bool flush_caches)
     bool isMeta = cls->isMetaClass();
 
     // fixme rearrange to remove these intermediate allocations
+    //这里需要注意的是添加的方式，首先创建二维数组，用于存放分类的方法列表，属性列表，协议列表
     method_list_t **mlists = (method_list_t **)
         malloc(cats->count * sizeof(*mlists));
     property_list_t **proplists = (property_list_t **)
@@ -786,6 +787,7 @@ attachCategories(Class cls, category_list *cats, bool flush_caches)
     int protocount = 0;
     int i = cats->count;
     bool fromBundle = NO;
+    //操作顺序，递减存放，先参加编译的分类数据会被排到数组后面，后编译的分类数据会被放到前面
     while (i--) {
         auto& entry = cats->list[i];
 
@@ -806,9 +808,9 @@ attachCategories(Class cls, category_list *cats, bool flush_caches)
             protolists[protocount++] = protolist;
         }
     }
-
+    //rw获取到的是类对象中bits，这个bits数据中存放了是class_rw_t,包含有类的方法列表，协议列表，属性列表，以及class_ro_t这个包含了类编译时的大部分信息（instanceSize,ivars,只读的方法列表，属性列表，协议列表等）
     auto rw = cls->data();
-
+    //下面只说明方法的合并操作
     prepareMethodLists(cls, mlists, mcount, NO, fromBundle);
     rw->methods.attachLists(mlists, mcount);
     free(mlists);
@@ -917,7 +919,7 @@ static void remethodizeClass(Class cls)
             _objc_inform("CLASS: attaching categories to class '%s' %s", 
                          cls->nameForLogging(), isMeta ? "(meta)" : "");
         }
-        
+        //添加分类到所对应的类中
         attachCategories(cls, cats, true /*flush caches*/);        
         free(cats);
     }
@@ -2427,9 +2429,10 @@ load_images(const char *path __unused, const struct mach_header *mh)
     // Discover load methods
     {
         mutex_locker_t lock2(runtimeLock);
+        //加载有load方法的类，父类，分类：加载顺序为父类》本类》分类
         prepare_load_methods((const headerType *)mh);
     }
-
+    //调用load方法，runtime中call_load_methods里是通过load方法的地址直接调用的load方法，而不是通过消息机制来调用的。
     // Call +load methods (without runtimeLock - re-entrant)
     call_load_methods();
 }
@@ -2974,9 +2977,10 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
     }    
 
     ts.log("IMAGE TIMES: realize future classes");
-
+    //搜索分类
     // Discover categories. 
     for (EACH_HEADER) {
+        //获取分类列表，并将分类列表中的数据加在所对应的类数据中，数据包括方法列表，属性列表，协议列表，事实上分类中的协议列表，属性列表都是空的，所以真正加进去的就是方法列表
         category_t **catlist = 
             _getObjc2CategoryList(hi, &count);
         bool hasClassProperties = hi->info()->hasCategoryClassProperties();
@@ -3007,6 +3011,7 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
             {
                 addUnattachedCategoryForClass(cat, cls, hi);
                 if (cls->isRealized()) {
+                    //重组方法列表
                     remethodizeClass(cls);
                     classExists = YES;
                 }
@@ -3115,13 +3120,14 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
 **********************************************************************/
 // Recursively schedule +load for cls and any un-+load-ed superclasses.
 // cls must already be connected.
+//先加载父类的load方法，再加载本类的load方法。同级类的load方法加载顺序和编译顺序有关，先编译先load
 static void schedule_class_load(Class cls)
 {
     if (!cls) return;
     assert(cls->isRealized());  // _read_images should realize
 
     if (cls->data()->flags & RW_LOADED) return;
-
+    //确认父类是否load，递归
     // Ensure superclass-first ordering
     schedule_class_load(cls->superclass);
 
@@ -3143,13 +3149,13 @@ void prepare_load_methods(const headerType *mhdr)
     size_t count, i;
 
     runtimeLock.assertLocked();
-
+    //先获取所有拥有 load 方法的类，
     classref_t *classlist = 
         _getObjc2NonlazyClassList(mhdr, &count);
     for (i = 0; i < count; i++) {
         schedule_class_load(remapClass(classlist[i]));
     }
-
+    //再获取所有拥有 load 方法的 分类
     category_t **categorylist = _getObjc2NonlazyCategoryList(mhdr, &count);
     for (i = 0; i < count; i++) {
         category_t *cat = categorylist[i];
@@ -3161,6 +3167,7 @@ void prepare_load_methods(const headerType *mhdr)
         }
         realizeClassWithoutSwift(cls);
         assert(cls->ISA()->isRealized());
+        //先编译的先load
         add_category_to_loadable_list(cat);
     }
 }

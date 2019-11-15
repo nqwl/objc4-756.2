@@ -10,9 +10,8 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface Person : NSObject
-@property (nonatomic, assign) NSInteger i;
-@property (nonatomic, assign) NSInteger j;
-@property (nonatomic, assign) NSInteger k;
+@property (nonatomic, copy) NSString *name;
+
 @end
 
 NS_ASSUME_NONNULL_END

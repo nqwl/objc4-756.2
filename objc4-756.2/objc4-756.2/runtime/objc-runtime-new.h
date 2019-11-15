@@ -768,8 +768,9 @@ class list_array_tt {
 
     void attachLists(List* const * addedLists, uint32_t addedCount) {
         if (addedCount == 0) return;
-
+        //
         if (hasArray()) {
+            //首先给类的数据（方法，属性，协议）列表扩容，再将类的数据放到最后，将addedLists（也就是分类数据）移到前面位置：可以解释的了，分类的方法调用先与分类的方法（指的是相同方法名的方法）
             // many lists -> many lists
             uint32_t oldCount = array()->count;
             uint32_t newCount = oldCount + addedCount;

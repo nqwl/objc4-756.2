@@ -326,6 +326,7 @@ void _object_remove_assocations(id object) {
         AssociationsManager manager;
         AssociationsHashMap &associations(manager.associations());
         if (associations.size() == 0) return;
+
         disguised_ptr_t disguised_object = DISGUISE(object);
         AssociationsHashMap::iterator i = associations.find(disguised_object);
         if (i != associations.end()) {

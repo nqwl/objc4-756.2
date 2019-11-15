@@ -532,6 +532,7 @@ void initializeNonMetaClass(Class cls)
         // objc_exception_set_functions().
         @try
         {
+            //callInitialize 内部是给objc_msgSend(cls,@selector(initialize))
             callInitialize(cls);
 
             if (PrintInitializing) {

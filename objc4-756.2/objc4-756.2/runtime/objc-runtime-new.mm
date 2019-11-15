@@ -1557,6 +1557,7 @@ static Class initializeAndMaybeRelock(Class cls, id inst,
 
     // runtimeLock is now unlocked, for +initialize dispatch
     assert(nonmeta->isRealized());
+    //去调用initialize
     initializeNonMetaClass(nonmeta);
 
     if (leaveLocked) runtimeLock.lock();
@@ -5066,6 +5067,7 @@ static Method _class_getMethod(Class cls, SEL sel)
 * class_getInstanceMethod.  Return the instance method for the
 * specified class and selector.
 **********************************************************************/
+//探寻initialize
 Method class_getInstanceMethod(Class cls, SEL sel)
 {
     if (!cls  ||  !sel) return nil;
@@ -5076,7 +5078,7 @@ Method class_getInstanceMethod(Class cls, SEL sel)
     // wants a Method instead of an IMP.
 
 #warning fixme build and search caches
-        
+        //搜索方法列表，找resolver
     // Search method lists, try method resolver, etc.
     lookUpImpOrNil(cls, sel, nil, 
                    NO/*initialize*/, NO/*cache*/, YES/*resolver*/);
@@ -5293,8 +5295,9 @@ IMP lookUpImpOrForward(Class cls, SEL sel, id inst,
         cls = realizeClassMaybeSwiftAndLeaveLocked(cls, runtimeLock);
         // runtimeLock may have been dropped but is now locked again
     }
-
+    //判断是否调用过initialize或者是否需要调用initialize
     if (initialize && !cls->isInitialized()) {
+
         cls = initializeAndLeaveLocked(cls, inst, runtimeLock);
         // runtimeLock may have been dropped but is now locked again
 
@@ -5393,6 +5396,7 @@ IMP lookUpImpOrForward(Class cls, SEL sel, id inst,
 IMP lookUpImpOrNil(Class cls, SEL sel, id inst, 
                    bool initialize, bool cache, bool resolver)
 {
+    //_objc_msgForward_impcache转发
     IMP imp = lookUpImpOrForward(cls, sel, inst, initialize, cache, resolver);
     if (imp == _objc_msgForward_impcache) return nil;
     else return imp;

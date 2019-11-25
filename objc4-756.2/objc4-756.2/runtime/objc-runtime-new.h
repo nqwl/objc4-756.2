@@ -78,11 +78,17 @@ public:
     void set(SEL newSel, IMP newImp);
 };
 
+//方法缓存
+/*
+ Class内部结构中有个方法缓存（cache_t），用散列表（哈希表）来缓存曾经调用过的方法，可以提高方法的查找速度
 
+
+
+ */
 struct cache_t {
-    struct bucket_t *_buckets;
-    mask_t _mask;
-    mask_t _occupied;
+    struct bucket_t *_buckets;//散列表
+    mask_t _mask;//散列表的长度 - 1
+    mask_t _occupied;//已经缓存的方法数量
 
 public:
     struct bucket_t *buckets();
@@ -101,7 +107,7 @@ public:
 
     void expand();
     void reallocate(mask_t oldCapacity, mask_t newCapacity);
-    struct bucket_t * find(SEL sel, id receiver);
+    struct bucket_t * find(SEL sel, id receiver);//缓存查询
 
     static void bad_cache(id receiver, SEL sel, Class isa) __attribute__((noreturn));
 };
@@ -1189,7 +1195,42 @@ public:
     }
 };
 
+//Class的结构
+/*
+ struct objc_class{
+    Class superclass;
+    cache_t cache;
+    class_data_bits_t bits;
+ }
 
+ struct class_rw_t {
+     uint32_t flags;
+     uint32_t version;
+     const class_ro_t *ro;//class_ro_t 存储的大多是类在编译时就已经确定的信息。（区别于class_rw_t， 提供了运行时对类拓展的能力）。
+     method_array_t methods;//类的方法列表
+     property_array_t properties;//类的属性列表
+     protocol_array_t protocols;//类的协议列表
+     Class firstSubclass;
+     Class nextSiblingClass;
+     char *demangledName;
+ };
+
+ struct class_ro_t {
+     uint32_t flags;
+     uint32_t instanceStart;
+     uint32_t instanceSize;
+ #ifdef __LP64__
+     uint32_t reserved;
+ #endif
+     const uint8_t * ivarLayout;
+     const char * name;
+     method_list_t * baseMethodList;
+     protocol_list_t * baseProtocols;
+     const ivar_list_t * ivars;
+     const uint8_t * weakIvarLayout;
+     property_list_t *baseProperties;
+ };
+ */
 struct objc_class : objc_object {
     // Class ISA;
     Class superclass;
@@ -1197,7 +1238,7 @@ struct objc_class : objc_object {
     class_data_bits_t bits;    // class_rw_t * plus custom rr/alloc flags
 
     class_rw_t *data() { 
-        return bits.data();
+        return bits.data();//内部实现是：(class_rw_t *)(bits & FAST_DATA_MASK)
     }
     void setData(class_rw_t *newData) {
         bits.setData(newData);
@@ -1335,6 +1376,7 @@ struct objc_class : objc_object {
 
 
     bool forbidsAssociatedObjects() {
+        //flags很多地方的判断依据都是根据flags的值处理的
         return (data()->flags & RW_FORBIDS_ASSOCIATED_OBJECTS);
     }
 

@@ -71,7 +71,36 @@ union isa_t {
 #endif
 };
 
-
+//arm64架构后，isa被优化成一个共用体（union）结构，还使用位域来存储更多的信息
+/*
+ nonpointer:0代表普通的指针，存储着Class、Meta-Class对象的c内存地址；1代表优化过，使用位域存储更多的信息
+ has_assoc:是否关联过对象，如果没有，释放时会更快
+ has_cxx_dtor:是否有C++的析构函数(.cxx.destruct)，如果没有，释放时会更快
+ shiftcls:存储着Class、Meta-Class对象的内存地址信息
+ magic:用于调试时分辨对象的内存地址信息
+ weakly_referenced:是否有被弱应用指向过，如果没有，释放时会更快
+ deallocating:对象是否正在释放
+ has_sidetable_rc:引用计数器是否大于无法存储在isa中，如果为1，那么引用计数器会存储在一个SideTable的类的属性中
+ extra_rc:里面存储的值是引用计数器减1
+ */
+/*
+ # elif __x86_64__
+ #   define ISA_MASK        0x00007ffffffffff8ULL
+ #   define ISA_MAGIC_MASK  0x001f800000000001ULL
+ #   define ISA_MAGIC_VALUE 0x001d800000000001ULL
+ #   define ISA_BITFIELD                                                        \
+       uintptr_t nonpointer        : 1;                                         \
+       uintptr_t has_assoc         : 1;                                         \
+       uintptr_t has_cxx_dtor      : 1;                                         \
+       uintptr_t shiftcls          : 44; //MACH_VM_MAX_ADDRESS 0x7fffffe00000   \
+       uintptr_t magic             : 6;                                         \
+       uintptr_t weakly_referenced : 1;                                         \
+       uintptr_t deallocating      : 1;                                         \
+       uintptr_t has_sidetable_rc  : 1;                                         \
+       uintptr_t extra_rc          : 8
+ #   define RC_ONE   (1ULL<<56)
+ #   define RC_HALF  (1ULL<<7)
+ */
 struct objc_object {
 private:
     isa_t isa;

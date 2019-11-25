@@ -275,7 +275,15 @@ void _object_set_associative_reference(id object, void *key, id value, uintptr_t
     
     if (object->getIsa()->forbidsAssociatedObjects())
         _objc_fatal("objc_setAssociatedObject called on instance (%p) of class %s which does not allow associated objects", object, object_getClassName(object));
-    
+    /*
+     AssociationsManager
+        AssociationsHashMap
+                    |
+            DISGUISE(object)  ObjectAssociationMap
+                                            |
+                                  key  ObjcAssociation
+    关联对象原理：由AssociatesManager管理的一个AssociationsHashMap存放着所有的(object,ObjectAssociationMap)对，在ObjectAssociationMap中存放着(key,ObjcAssociation(policy,value))对。
+     */
     // retain the new value (if any) outside the lock.
     ObjcAssociation old_association(0, nil);
     id new_value = value ? acquireValue(value, policy) : nil;

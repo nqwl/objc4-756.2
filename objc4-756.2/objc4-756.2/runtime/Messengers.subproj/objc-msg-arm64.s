@@ -301,7 +301,7 @@ _objc_debug_taggedpointer_classes:
 _objc_debug_taggedpointer_ext_classes:
 	.fill 256, 8, 0
 #endif
-
+    //objc_msgSend()执行初始位置
 	ENTRY _objc_msgSend
 	UNWIND _objc_msgSend, NoFrame
 
@@ -459,6 +459,7 @@ LLookup_Nil:
 
 	// receiver and selector already in x0 and x1
 	mov	x2, x16
+    //从这里开始找objc-runtime-new.mm
 	bl	__class_lookupMethodAndLoadCache3
 
 	// IMP in x0

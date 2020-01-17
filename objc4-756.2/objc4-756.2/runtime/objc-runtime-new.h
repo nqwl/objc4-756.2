@@ -40,8 +40,8 @@ private:
     // IMP-first is better for arm64e ptrauth and no worse for arm64.
     // SEL-first is better for armv7* and i386 and x86_64.
 #if __arm64__
-    uintptr_t _imp;
-    SEL _sel;
+    uintptr_t _imp;//函数的内存地址
+    SEL _sel;//sel作为key
 #else
     SEL _sel;
     uintptr_t _imp;
@@ -246,12 +246,19 @@ struct entsize_list_tt {
         }
     };
 };
-
+//
+/*
+    SEL代表方法名/函数名，一般叫做选择器，底层结构跟char *类似
+        可以通过@selector()和sel_registerName()获得
+        可以通过sel_getName()和NSStringFromSelector()转成字符串
+        不同类中相同名字的方法，所对应的方法选择器是相同的
+    type包含了函数返回值，参数编码的字符串
+ */
 
 struct method_t {
-    SEL name;
-    const char *types;
-    MethodListIMP imp;
+    SEL name;               //函数名
+    const char *types;      //编码（返回值类型，参数类型）
+    MethodListIMP imp;      //指向函数的指针（函数地址）
 
     struct SortBySELAddress :
         public std::binary_function<const method_t&,
